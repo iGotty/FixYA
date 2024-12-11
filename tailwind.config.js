@@ -10,4 +10,5 @@ module.exports = {
     },
 },
 plugins: [],
+safelist: ['font-gliker'],
 }
