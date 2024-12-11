@@ -67,7 +67,6 @@ const Contact = () => {
     // Ref para el input file
     const fileInputRef = useRef(null);
 
-    const toggleRole = () => setIsIndependent(!isIndependent);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
