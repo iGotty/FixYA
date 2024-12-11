@@ -25,3 +25,7 @@ To use this template:
 Feel free to edit and make changes. 
 
 You can also Fork the repo and clone to your local machine, make desired changes and enjoy.
+
+
+
+<div> Iconos diseñados por <a href="https://www.flaticon.es/autores/berkahicon" title="berkahicon"> berkahicon </a> from <a href="https://www.flaticon.es/" title="Flaticon">www.flaticon.es'</a></div>

@@ -3,7 +3,11 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
-  },
-  plugins: [],
+    extend: {
+        fontFamily: {
+            gliker: ['Gliker', 'sans-serif'], // Agrega Gliker como una familia de fuente
+        },
+    },
+},
+plugins: [],
 }
