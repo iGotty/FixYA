@@ -49,10 +49,13 @@ const Contact = () => {
         genero: '',
         cedula: '',
         celular: '',
-        direccion: '',
+        correo: '',
         experiencia: {},
-        documento: null,
-        documentoTipo: ''
+        documentoTipo: '',
+        documentoFrontal: null,
+        documentoTrasera: null,
+        documentoUnico: null,
+        fotoPersonal: null
     });
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [modalExperience, setModalExperience] = useState(false);
@@ -64,9 +67,11 @@ const Contact = () => {
     });
     const [customCategories, setCustomCategories] = useState([]);
 
-    // Ref para el input file
-    const fileInputRef = useRef(null);
-
+    // Refs para los inputs de archivo
+    const fileInputRefFront = useRef(null);
+    const fileInputRefBack = useRef(null);
+    const fileInputRefSingle = useRef(null);
+    const fileInputRefPersonal = useRef(null);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -119,25 +124,55 @@ const Contact = () => {
         setModalDocument(false);
         setFormData({ ...formData, documentoTipo: type });
 
-        // Esperar un pequeño tiempo para asegurar que el modal se cerró antes de hacer click
-        setTimeout(() => {
-            if (fileInputRef.current) {
-                fileInputRef.current.click();
-            }
-        }, 100);
-    };
-
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file && file.type === 'application/pdf') {
-            setFormData({ ...formData, documento: file });
+        // Después de seleccionar el tipo de documento, dependiendo del tipo, abrir el input correspondiente
+        if (type === 'Cédula de Ciudadanía' || type === 'Cédula de Extranjería') {
+            // Abrimos el input frontal
+            setTimeout(() => {
+                if (fileInputRefFront.current) {
+                    fileInputRefFront.current.click();
+                }
+            }, 100);
         } else {
-            alert('Por favor, sube un archivo en formato PDF.');
+            // Abrimos el input único
+            setTimeout(() => {
+                if (fileInputRefSingle.current) {
+                    fileInputRefSingle.current.click();
+                }
+            }, 100);
         }
     };
 
-    const removeFile = () => {
-        setFormData({ ...formData, documento: null });
+    const handleFileChange = (e, side = 'single') => {
+        const file = e.target.files[0];
+        if (file && (file.type === 'application/pdf' || file.type.startsWith('image/'))) {
+            if (side === 'front') {
+                setFormData({ ...formData, documentoFrontal: file });
+                // Después de seleccionar el frontal, abrir el trasero si aplica
+                if (formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') {
+                    setTimeout(() => {
+                        if (fileInputRefBack.current) {
+                            fileInputRefBack.current.click();
+                        }
+                    }, 100);
+                }
+            } else if (side === 'back') {
+                setFormData({ ...formData, documentoTrasera: file });
+            } else {
+                setFormData({ ...formData, documentoUnico: file });
+            }
+        } else {
+            alert('Por favor, sube un archivo en formato PDF o imagen.');
+        }
+    };
+
+    const removeFile = (side = 'single') => {
+        if (side === 'front') {
+            setFormData({ ...formData, documentoFrontal: null });
+        } else if (side === 'back') {
+            setFormData({ ...formData, documentoTrasera: null });
+        } else {
+            setFormData({ ...formData, documentoUnico: null });
+        }
     };
 
     const handleCustomCategoryChange = (e) => {
@@ -163,6 +198,49 @@ const Contact = () => {
             experiencia: { ...formData.experiencia, [trimmedName]: years },
         });
         setModalCustomCategory(false);
+    };
+
+    const handlePersonalImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file && (file.type === 'application/pdf' || file.type.startsWith('image/'))) {
+            setFormData({ ...formData, fotoPersonal: file });
+        } else {
+            alert('Por favor, sube un archivo en formato PDF o imagen.');
+        }
+    };
+
+    const removePersonalImage = () => {
+        setFormData({ ...formData, fotoPersonal: null });
+    };
+
+    const handleSubmit = (e) => {
+        // Validar que se haya subido el documento y la foto personal antes de enviar
+        // Si es cédula o cédula de extranjería, se requieren 2 archivos (frontal y trasera)
+        // De lo contrario, se requiere 1 archivo
+        e.preventDefault();
+        if (formData.documentoTipo === '') {
+            alert('Por favor, selecciona el tipo de documento y súbelo.');
+            return;
+        }
+
+        if ((formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') &&
+            (!formData.documentoFrontal || !formData.documentoTrasera)) {
+            alert('Por favor, sube la imagen frontal y la trasera de la cédula.');
+            return;
+        }
+
+        if ((formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'Certificado Cámara de Comercio') &&
+            !formData.documentoUnico) {
+            alert('Por favor, sube el documento requerido.');
+            return;
+        }
+
+        if (!formData.fotoPersonal) {
+            alert('Por favor, sube la imagen personal.');
+            return;
+        }
+
+        e.target.submit();
     };
 
     return (
@@ -195,6 +273,7 @@ const Contact = () => {
                         action="https://formsubmit.co/42b466ff499136110887cb7d9e7da5ff" 
                         method="POST" 
                         encType="multipart/form-data"
+                        onSubmit={handleSubmit}
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             {isIndependent ? (
@@ -215,7 +294,8 @@ const Contact = () => {
                                 </>
                             )}
                             <input name="celular" className="p-4 bg-white border rounded-lg" type="text" placeholder="Celular" value={formData.celular} onChange={handleInputChange} required />
-                            <input name="direccion" className="p-4 bg-white border rounded-lg" type="text" placeholder="Dirección" value={formData.direccion} onChange={handleInputChange} required />
+                            <input name="correo" className="p-4 bg-white border rounded-lg" type="email" placeholder="Correo electrónico" value={formData.correo} onChange={handleInputChange} required />
+
                         </div>
 
                         {/* Categorías */}
@@ -295,48 +375,144 @@ const Contact = () => {
                             />
                         ))}
 
-                        {/* Subida de Archivo */}
-                        <div className="flex items-center mb-6">
+                        {/* Subida de Documento */}
+                        <div className="mb-6">
                             <label
-                                className="bg-blue-900 text-white p-3 rounded-lg flex items-center cursor-pointer"
+                                className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
                                 onClick={() => setModalDocument(true)}
                             >
-                                Adjuntar Documento
+                                Adjuntar Documento de Identidad
                                 <i className="fas fa-paperclip ml-2"></i>
                             </label>
-                            <div className="flex items-center ml-4">
-                                {formData.documento && (
+                            {/* Mostrar archivos subidos dependiendo del tipo de documento */}
+                            <div className="mt-4">
+                                {formData.documentoTipo && (formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') && (
+                                    <div className="flex flex-col space-y-2">
+                                        <div className="flex items-center">
+                                            <input
+                                                type="file"
+                                                name="documentoFrontal"
+                                                ref={fileInputRefFront}
+                                                onChange={(e) => handleFileChange(e, 'front')}
+                                                style={{ display: 'none' }}
+                                                accept="application/pdf,image/*"
+                                            />
+                                            {formData.documentoFrontal && (
+                                                <>
+                                                    <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                                    <p className="text-gray-700 mr-4">{formData.documentoFrontal.name}</p>
+                                                    <button
+                                                        type="button"
+                                                        className="text-red-500 hover:text-red-700"
+                                                        onClick={() => removeFile('front')}
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </>
+                                            )}
+                                            {!formData.documentoFrontal && <p className="text-gray-500">Frontal no seleccionado</p>}
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="file"
+                                                name="documentoTrasera"
+                                                ref={fileInputRefBack}
+                                                onChange={(e) => handleFileChange(e, 'back')}
+                                                style={{ display: 'none' }}
+                                                accept="application/pdf,image/*"
+                                            />
+                                            {formData.documentoTrasera && (
+                                                <>
+                                                    <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                                    <p className="text-gray-700 mr-4">{formData.documentoTrasera.name}</p>
+                                                    <button
+                                                        type="button"
+                                                        className="text-red-500 hover:text-red-700"
+                                                        onClick={() => removeFile('back')}
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </>
+                                            )}
+                                            {!formData.documentoTrasera && <p className="text-gray-500">Trasera no seleccionada</p>}
+                                        </div>
+                                    </div>
+                                )}
+                                {formData.documentoTipo && (formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'Certificado Cámara de Comercio') && (
+                                    <div className="flex items-center mt-2">
+                                        <input
+                                            type="file"
+                                            name="documentoUnico"
+                                            ref={fileInputRefSingle}
+                                            onChange={(e) => handleFileChange(e, 'single')}
+                                            style={{ display: 'none' }}
+                                            accept="application/pdf,image/*"
+                                        />
+                                        {formData.documentoUnico && (
+                                            <>
+                                                <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                                <p className="text-gray-700 mr-4">{formData.documentoUnico.name}</p>
+                                                <button
+                                                    type="button"
+                                                    className="text-red-500 hover:text-red-700"
+                                                    onClick={() => removeFile('single')}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </>
+                                        )}
+                                        {!formData.documentoUnico && <p className="text-gray-500">Ningún archivo seleccionado</p>}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Nuevo botón para subir imagen personal */}
+                        <div className="mb-6">
+                            <label
+                                className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
+                                onClick={() => fileInputRefPersonal.current && fileInputRefPersonal.current.click()}
+                            >
+                                Adjuntar Imagen Personal
+                                <i className="fas fa-paperclip ml-2"></i>
+                            </label>
+                            <div className="flex items-center ml-4 mt-2">
+                                <input
+                                    type="file"
+                                    name="fotoPersonal"
+                                    ref={fileInputRefPersonal}
+                                    onChange={handlePersonalImageChange}
+                                    style={{ display: 'none' }}
+                                    accept="application/pdf,image/*"
+                                />
+                                {formData.fotoPersonal && (
                                     <>
                                         <i className="fas fa-paperclip text-blue-900 mr-2"></i>
-                                        <p className="text-gray-700 mr-4">{formData.documento.name}</p>
+                                        <p className="text-gray-700 mr-4">{formData.fotoPersonal.name}</p>
                                         <button
                                             type="button"
                                             className="text-red-500 hover:text-red-700"
-                                            onClick={removeFile}
+                                            onClick={removePersonalImage}
                                         >
                                             ✕
                                         </button>
                                     </>
                                 )}
-                                {!formData.documento && <p className="text-gray-500">Ningún archivo seleccionado</p>}
+                                {!formData.fotoPersonal && <p className="text-gray-500">Ningún archivo seleccionado</p>}
                             </div>
                         </div>
 
-                        {/* Input file oculto */}
-                        <input
-                            type="file"
-                            name="documento"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            style={{ display: 'none' }}
-                        />
-
                         {/* Botón de Envío */}
-                        <div className="flex justify-center mt-10">
+                        {/* Botón de Envío */}
+                        <div className="flex flex-col items-center mt-10">
                             <button type="submit" className="bg-blue-900 text-white px-8 py-3 rounded-lg text-lg font-bold hover:bg-blue-800">
                                 Enviar Registro
                             </button>
+                            <p className="text-center text-sm text-gray-500 mt-4">
+                                Al enviar el registro aceptas la política de tratamiento de datos conforme a la Ley 1581 de 2012.
+                            </p>
                         </div>
+
                     </form>
                 </div>
             </div>
@@ -345,11 +521,11 @@ const Contact = () => {
             {modalExperience && (
                 <div
                     className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center"
-                    onClick={() => setModalExperience(false)} // Cierra el modal al hacer clic afuera
+                    onClick={() => setModalExperience(false)}
                 >
                     <div
                         className="bg-white p-6 rounded-lg"
-                        onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal lo cierre
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className="text-xl font-bold mb-4">Años de experiencia en {selectedCategory.name}</h2>
                         <input
@@ -431,11 +607,11 @@ const Contact = () => {
             {modalCustomCategory && (
                 <div
                     className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center"
-                    onClick={() => setModalCustomCategory(false)} // Cierra el modal al hacer clic afuera
+                    onClick={() => setModalCustomCategory(false)}
                 >
                     <div
                         className="bg-white p-6 rounded-lg"
-                        onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal lo cierre
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className="text-xl font-bold mb-4">Agregar Nueva Categoría</h2>
                         <input
