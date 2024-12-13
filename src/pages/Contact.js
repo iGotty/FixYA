@@ -229,7 +229,7 @@ const Contact = () => {
             return;
         }
 
-        if ((formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'Certificado Cámara de Comercio') &&
+        if ((formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'RUT') &&
             !formData.documentoUnico) {
             alert('Por favor, sube el documento requerido.');
             return;
@@ -438,7 +438,7 @@ const Contact = () => {
                                         </div>
                                     </div>
                                 )}
-                                {formData.documentoTipo && (formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'Certificado Cámara de Comercio') && (
+                                {formData.documentoTipo && (formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'RUT') && (
                                     <div className="flex items-center mt-2">
                                         <input
                                             type="file"
@@ -585,9 +585,9 @@ const Contact = () => {
                                     <button
                                         type="button"
                                         className="p-3 bg-blue-900 text-white rounded-lg"
-                                        onClick={() => handleDocumentTypeSelect('Certificado Cámara de Comercio')}
+                                        onClick={() => handleDocumentTypeSelect('RUT')}
                                     >
-                                        Certificado Cámara de Comercio
+                                        RUT
                                     </button>
                                 </>
                             )}

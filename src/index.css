@@ -24,3 +24,10 @@ body {
 }
 
 
+@font-face {
+  font-family: 'Gliker';
+  src: url('../public/fonts/Gliker-Regular.woff2') format('woff2'),
+       url('../public/fonts/Gliker-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
