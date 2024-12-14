@@ -278,6 +278,8 @@ const Contact = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             {isIndependent ? (
                                 <>
+                                    <input type="hidden" name="_template" value="table"></input>
+                                    <input type="hidden" name="_next" value="https://yafix.netlify.app/thanks"></input>
                                     <input name="nombres" className="p-4 bg-white border rounded-lg" type="text" placeholder="Nombres" value={formData.nombres} onChange={handleInputChange} required />
                                     <input name="apellidos" className="p-4 bg-white border rounded-lg" type="text" placeholder="Apellidos" value={formData.apellidos} onChange={handleInputChange} required />
                                     <select name="genero" className="p-4 bg-white border rounded-lg" value={formData.genero} onChange={handleInputChange} required>
@@ -512,7 +514,8 @@ const Contact = () => {
                                 Al enviar el registro aceptas la política de tratamiento de datos conforme a la Ley 1581 de 2012.
                             </p>
                         </div>
-
+                        
+    
                     </form>
                 </div>
             </div>

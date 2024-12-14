@@ -39,7 +39,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/get-demo" element={<DemoProduct />} /> 
+            <Route path="/thanks" element={<DemoProduct />} /> 
           </Routes>
         </ScrollToTop>
       </Router>
