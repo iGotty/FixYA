@@ -35,7 +35,6 @@ const predefinedCategories = [
     { id: 22, name: 'Carga y Transporte', icon: faBox },
     { id: 23, name: 'Conductor', icon: faCar },
     { id: 24, name: 'Alquiler de carros', icon: faCarAlt },
-    // 'Otros' se manejará por separado
 ];
 
 const Contact = () => {
@@ -68,10 +67,7 @@ const Contact = () => {
     });
     const [customCategories, setCustomCategories] = useState([]);
 
-    // Refs para los inputs de archivo
-    const fileInputRefFront = useRef(null);
-    const fileInputRefBack = useRef(null);
-    const fileInputRefSingle = useRef(null);
+
     const fileInputRefPersonal = useRef(null);
     const fileInputRefCertificado = useRef(null);
 
@@ -250,7 +246,7 @@ const Contact = () => {
 
                     {/* Campos del Formulario */}
                     <form 
-                        action="https://formsubmit.co/42b466ff499136110887cb7d9e7da5ff" 
+                        action="https://formsubmit.co/accionistas@yafixapp.com" 
                         method="POST" 
                         encType="multipart/form-data"
                         onSubmit={handleSubmit}
@@ -284,7 +280,6 @@ const Contact = () => {
 
                         {/* Categorías */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            {/* Categorías Predefinidas */}
                             {predefinedCategories.map((category) => (
                                 <div
                                     key={category.id}
@@ -325,11 +320,9 @@ const Contact = () => {
                                             className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                // Deseleccionar la categoría
                                                 const updatedExperience = { ...formData.experiencia };
                                                 delete updatedExperience[category.name];
                                                 setFormData({ ...formData, experiencia: updatedExperience });
-                                                // Remover de las categorías personalizadas
                                                 setCustomCategories(customCategories.filter(cat => cat.id !== category.id));
                                             }}
                                         >
@@ -349,7 +342,6 @@ const Contact = () => {
                             </div>
                         </div>
 
-                        {/* Campos ocultos para categorías seleccionadas */}
                         {Object.entries(formData.experiencia).map(([categoryName, years]) => (
                             <input
                                 key={categoryName}
@@ -361,124 +353,187 @@ const Contact = () => {
 
                         {/* Subida de Documento */}
                         <div className="mb-6">
-                            {isIndependent ? (
-                                <label
-                                    className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
-                                    onClick={() => setModalDocument(true)}
-                                >
-                                    Adjuntar documento de identidad
-                                    <i className="fas fa-paperclip ml-2"></i>
-                                </label>
+                            {!isIndependent ? (
+                                <div>
+                                    <button
+                                        type="button"
+                                        className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
+                                        onClick={() => setModalDocument(true)}
+                                    >
+                                        Adjuntar RUT
+                                    </button>
+                                    {formData.documentoTipo === 'RUT' && (
+                                        <div className="mt-4 flex items-center">
+                                            <input
+                                                type="file"
+                                                name="documentoUnico"
+                                                id="documentoUnico"
+                                                style={{ display: 'none' }}
+                                                onChange={(e) => handleFileChange(e, 'single')}
+                                                accept="application/pdf,image/*"
+                                            />
+                                            <label
+                                                htmlFor="documentoUnico"
+                                                className="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg cursor-pointer border border-gray-300 hover:bg-gray-300 transition"
+                                            >
+                                                Seleccionar RUT
+                                            </label>
+                                            {formData.documentoUnico ? (
+                                                <div className="ml-4 flex items-center">
+                                                    <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                                    <p className="text-gray-700 mr-4">{formData.documentoUnico.name}</p>
+                                                    <button
+                                                        type="button"
+                                                        className="text-red-500 hover:text-red-700"
+                                                        onClick={() => removeFile('single')}
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-500 ml-4">Ningún archivo seleccionado</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             ) : (
-                                <label
-                                    className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
-                                    onClick={() => {setModalDocument(true)}}
-                                >
-                                    Adjuntar RUT
-                                    <i className="fas fa-paperclip ml-2"></i>
-                                </label>
-                            )}
-                            
-                            {/* Mostrar archivos subidos dependiendo del tipo de documento */}
-                            <div className="mt-4">
-                                {formData.documentoTipo && isIndependent && (formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') && (
-                                    <div className="flex flex-col space-y-2">
-                                        <div className="flex items-center">
-                                            <input
-                                                type="file"
-                                                name="documentoFrontal"
-                                                ref={fileInputRefFront}
-                                                onChange={(e) => handleFileChange(e, 'front')}
-                                                accept="application/pdf,image/*"
-                                            />
-                                            {formData.documentoFrontal && (
-                                                <>
-                                                    <i className="fas fa-paperclip text-blue-900 mr-2"></i>
-                                                    <p className="text-gray-700 mr-4">{formData.documentoFrontal.name}</p>
-                                                    <button
-                                                        type="button"
-                                                        className="text-red-500 hover:text-red-700"
-                                                        onClick={() => removeFile('front')}
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </>
-                                            )}
-                                            {!formData.documentoFrontal && <p className="text-gray-500 ml-2">Frontal no seleccionado</p>}
-                                        </div>
-                                        <div className="flex items-center">
-                                            <input
-                                                type="file"
-                                                name="documentoTrasera"
-                                                ref={fileInputRefBack}
-                                                onChange={(e) => handleFileChange(e, 'back')}
-                                                accept="application/pdf,image/*"
-                                            />
-                                            {formData.documentoTrasera && (
-                                                <>
-                                                    <i className="fas fa-paperclip text-blue-900 mr-2"></i>
-                                                    <p className="text-gray-700 mr-4">{formData.documentoTrasera.name}</p>
-                                                    <button
-                                                        type="button"
-                                                        className="text-red-500 hover:text-red-700"
-                                                        onClick={() => removeFile('back')}
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </>
-                                            )}
-                                            {!formData.documentoTrasera && <p className="text-gray-500 ml-2">Trasera no seleccionada</p>}
-                                        </div>
-                                    </div>
-                                )}
-                                {formData.documentoTipo && ((isIndependent && formData.documentoTipo === 'Pasaporte') || (!isIndependent && formData.documentoTipo === 'RUT')) && (
-                                    <div className="flex items-center mt-2">
-                                        <input
-                                            type="file"
-                                            name="documentoUnico"
-                                            ref={fileInputRefSingle}
-                                            onChange={(e) => handleFileChange(e, 'single')}
-                                            accept="application/pdf,image/*"
-                                        />
-                                        {formData.documentoUnico && (
-                                            <>
-                                                <i className="fas fa-paperclip text-blue-900 mr-2"></i>
-                                                <p className="text-gray-700 mr-4">{formData.documentoUnico.name}</p>
-                                                <button
-                                                    type="button"
-                                                    className="text-red-500 hover:text-red-700"
-                                                    onClick={() => removeFile('single')}
+                                <div>
+                                    <button
+                                        type="button"
+                                        className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
+                                        onClick={() => setModalDocument(true)}
+                                    >
+                                        Adjuntar documento de identidad
+                                    </button>
+
+                                    {/* Documento de Identidad Independientes */}
+                                    {formData.documentoTipo && (formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') && (
+                                        <div className="mt-4">
+                                            {/* Frontal */}
+                                            <div className="flex items-center mb-2">
+                                                <input
+                                                    type="file"
+                                                    name="documentoFrontal"
+                                                    id="documentoFrontal"
+                                                    style={{ display: 'none' }}
+                                                    onChange={(e) => handleFileChange(e, 'front')}
+                                                    accept="application/pdf,image/*"
+                                                />
+                                                <label
+                                                    htmlFor="documentoFrontal"
+                                                    className="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg cursor-pointer border border-gray-300 hover:bg-gray-300 transition"
                                                 >
-                                                    ✕
-                                                </button>
-                                            </>
-                                        )}
-                                        {!formData.documentoUnico && <p className="text-gray-500 ml-2">Ningún archivo seleccionado</p>}
-                                    </div>
-                                )}
-                            </div>
+                                                    Seleccionar Frontal
+                                                </label>
+                                                {formData.documentoFrontal ? (
+                                                    <div className="ml-4 flex items-center">
+                                                        <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                                        <p className="text-gray-700 mr-4">{formData.documentoFrontal.name}</p>
+                                                        <button
+                                                            type="button"
+                                                            className="text-red-500 hover:text-red-700"
+                                                            onClick={() => removeFile('front')}
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-500 ml-4">Frontal no seleccionado</p>
+                                                )}
+                                            </div>
+                                            {/* Trasera */}
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="file"
+                                                    name="documentoTrasera"
+                                                    id="documentoTrasera"
+                                                    style={{ display: 'none' }}
+                                                    onChange={(e) => handleFileChange(e, 'back')}
+                                                    accept="application/pdf,image/*"
+                                                />
+                                                <label
+                                                    htmlFor="documentoTrasera"
+                                                    className="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg cursor-pointer border border-gray-300 hover:bg-gray-300 transition"
+                                                >
+                                                    Seleccionar Trasera
+                                                </label>
+                                                {formData.documentoTrasera ? (
+                                                    <div className="ml-4 flex items-center">
+                                                        <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                                        <p className="text-gray-700 mr-4">{formData.documentoTrasera.name}</p>
+                                                        <button
+                                                            type="button"
+                                                            className="text-red-500 hover:text-red-700"
+                                                            onClick={() => removeFile('back')}
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-500 ml-4">Trasera no seleccionada</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {formData.documentoTipo && (formData.documentoTipo === 'Pasaporte') && (
+                                        <div className="mt-4 flex items-center">
+                                            <input
+                                                type="file"
+                                                name="documentoUnico"
+                                                id="documentoUnicoPasaporte"
+                                                style={{ display: 'none' }}
+                                                onChange={(e) => handleFileChange(e, 'single')}
+                                                accept="application/pdf,image/*"
+                                            />
+                                            <label
+                                                htmlFor="documentoUnicoPasaporte"
+                                                className="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg cursor-pointer border border-gray-300 hover:bg-gray-300 transition"
+                                            >
+                                                Seleccionar Pasaporte
+                                            </label>
+                                            {formData.documentoUnico ? (
+                                                <div className="ml-4 flex items-center">
+                                                    <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                                    <p className="text-gray-700 mr-4">{formData.documentoUnico.name}</p>
+                                                    <button
+                                                        type="button"
+                                                        className="text-red-500 hover:text-red-700"
+                                                        onClick={() => removeFile('single')}
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-500 ml-4">Ningún archivo seleccionado</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Adjuntar Imagen Personal solo para Independientes */}
                         {isIndependent && (
                             <div className="mb-6">
-                                <label
+                                <button
+                                    type="button"
                                     className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
-                                    onClick={() => fileInputRefPersonal.current && fileInputRefPersonal.current.click()}
+                                    onClick={() => {
+                                        if(fileInputRefPersonal.current) fileInputRefPersonal.current.click();
+                                    }}
                                 >
                                     Adjuntar Imagen Personal
-                                    <i className="fas fa-paperclip ml-2"></i>
-                                </label>
+                                </button>
+                                <input
+                                    type="file"
+                                    name="fotoPersonal"
+                                    ref={fileInputRefPersonal}
+                                    style={{ display: 'none' }}
+                                    onChange={(e) => handleFileChange(e, 'personal')}
+                                    accept="application/pdf,image/*"
+                                />
                                 <div className="flex items-center ml-4 mt-2">
-                                    <input
-                                        type="file"
-                                        name="fotoPersonal"
-                                        ref={fileInputRefPersonal}
-                                        onChange={(e) => handleFileChange(e, 'personal')}
-                                        style={{ display: 'none' }}
-                                        accept="application/pdf,image/*"
-                                    />
-                                    {formData.fotoPersonal && (
+                                    {formData.fotoPersonal ? (
                                         <>
                                             <i className="fas fa-paperclip text-blue-900 mr-2"></i>
                                             <p className="text-gray-700 mr-4">{formData.fotoPersonal.name}</p>
@@ -490,8 +545,9 @@ const Contact = () => {
                                                 ✕
                                             </button>
                                         </>
+                                    ) : (
+                                        <p className="text-gray-500">Ningún archivo seleccionado</p>
                                     )}
-                                    {!formData.fotoPersonal && <p className="text-gray-500">Ningún archivo seleccionado</p>}
                                 </div>
                             </div>
                         )}
@@ -499,23 +555,25 @@ const Contact = () => {
                         {/* Adjuntar Certificado de Experticia solo para Independientes (OPCIONAL) */}
                         {isIndependent && (
                             <div className="mb-6">
-                                <label
+                                <button
+                                    type="button"
                                     className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
-                                    onClick={() => fileInputRefCertificado.current && fileInputRefCertificado.current.click()}
+                                    onClick={() => {
+                                        if(fileInputRefCertificado.current) fileInputRefCertificado.current.click();
+                                    }}
                                 >
                                     Adjuntar Certificado de experticia (Opcional)
-                                    <i className="fas fa-paperclip ml-2"></i>
-                                </label>
+                                </button>
+                                <input
+                                    type="file"
+                                    name="certificadoExperticia"
+                                    ref={fileInputRefCertificado}
+                                    style={{ display: 'none' }}
+                                    onChange={(e) => handleFileChange(e, 'certificado')}
+                                    accept="application/pdf,image/*"
+                                />
                                 <div className="flex items-center ml-4 mt-2">
-                                    <input
-                                        type="file"
-                                        name="certificadoExperticia"
-                                        ref={fileInputRefCertificado}
-                                        onChange={(e) => handleFileChange(e, 'certificado')}
-                                        style={{ display: 'none' }}
-                                        accept="application/pdf,image/*"
-                                    />
-                                    {formData.certificadoExperticia && (
+                                    {formData.certificadoExperticia ? (
                                         <>
                                             <i className="fas fa-paperclip text-blue-900 mr-2"></i>
                                             <p className="text-gray-700 mr-4">{formData.certificadoExperticia.name}</p>
@@ -527,13 +585,13 @@ const Contact = () => {
                                                 ✕
                                             </button>
                                         </>
+                                    ) : (
+                                        <p className="text-gray-500">Ningún archivo seleccionado</p>
                                     )}
-                                    {!formData.certificadoExperticia && <p className="text-gray-500">Ningún archivo seleccionado</p>}
                                 </div>
                             </div>
                         )}
 
-                        {/* Botón de Envío */}
                         <div className="flex flex-col items-center mt-10">
                             <button type="submit" className="bg-blue-900 text-white px-8 py-3 rounded-lg text-lg font-bold hover:bg-blue-800">
                                 Enviar Registro
