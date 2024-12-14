@@ -17,7 +17,7 @@ const Footer = () => {
                                 <div className='text-md font-medium text-gray-600'>
                                     <h5 className="font-gliker font-normal">YAfix</h5>
                                     <p>Bogotá, Colombia</p>
-                                    <p>Correo: yafix@gmail.com</p>
+                                    <p>Correo: accionistas@yafixapp.com</p>
                                 </div>
                             </div>
                         </div>
