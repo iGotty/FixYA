@@ -55,7 +55,8 @@ const Contact = () => {
         documentoFrontal: null,
         documentoTrasera: null,
         documentoUnico: null,
-        fotoPersonal: null
+        fotoPersonal: null,
+        certificadoExperticia: null
     });
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [modalExperience, setModalExperience] = useState(false);
@@ -72,6 +73,7 @@ const Contact = () => {
     const fileInputRefBack = useRef(null);
     const fileInputRefSingle = useRef(null);
     const fileInputRefPersonal = useRef(null);
+    const fileInputRefCertificado = useRef(null);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -123,23 +125,6 @@ const Contact = () => {
     const handleDocumentTypeSelect = (type) => {
         setModalDocument(false);
         setFormData({ ...formData, documentoTipo: type });
-
-        // Después de seleccionar el tipo de documento, dependiendo del tipo, abrir el input correspondiente
-        if (type === 'Cédula de Ciudadanía' || type === 'Cédula de Extranjería') {
-            // Abrimos el input frontal
-            setTimeout(() => {
-                if (fileInputRefFront.current) {
-                    fileInputRefFront.current.click();
-                }
-            }, 100);
-        } else {
-            // Abrimos el input único
-            setTimeout(() => {
-                if (fileInputRefSingle.current) {
-                    fileInputRefSingle.current.click();
-                }
-            }, 100);
-        }
     };
 
     const handleFileChange = (e, side = 'single') => {
@@ -147,16 +132,12 @@ const Contact = () => {
         if (file && (file.type === 'application/pdf' || file.type.startsWith('image/'))) {
             if (side === 'front') {
                 setFormData({ ...formData, documentoFrontal: file });
-                // Después de seleccionar el frontal, abrir el trasero si aplica
-                if (formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') {
-                    setTimeout(() => {
-                        if (fileInputRefBack.current) {
-                            fileInputRefBack.current.click();
-                        }
-                    }, 100);
-                }
             } else if (side === 'back') {
                 setFormData({ ...formData, documentoTrasera: file });
+            } else if (side === 'personal') {
+                setFormData({ ...formData, fotoPersonal: file });
+            } else if (side === 'certificado') {
+                setFormData({ ...formData, certificadoExperticia: file });
             } else {
                 setFormData({ ...formData, documentoUnico: file });
             }
@@ -170,6 +151,10 @@ const Contact = () => {
             setFormData({ ...formData, documentoFrontal: null });
         } else if (side === 'back') {
             setFormData({ ...formData, documentoTrasera: null });
+        } else if (side === 'personal') {
+            setFormData({ ...formData, fotoPersonal: null });
+        } else if (side === 'certificado') {
+            setFormData({ ...formData, certificadoExperticia: null });
         } else {
             setFormData({ ...formData, documentoUnico: null });
         }
@@ -200,44 +185,39 @@ const Contact = () => {
         setModalCustomCategory(false);
     };
 
-    const handlePersonalImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file && (file.type === 'application/pdf' || file.type.startsWith('image/'))) {
-            setFormData({ ...formData, fotoPersonal: file });
-        } else {
-            alert('Por favor, sube un archivo en formato PDF o imagen.');
-        }
-    };
-
-    const removePersonalImage = () => {
-        setFormData({ ...formData, fotoPersonal: null });
-    };
-
     const handleSubmit = (e) => {
-        // Validar que se haya subido el documento y la foto personal antes de enviar
-        // Si es cédula o cédula de extranjería, se requieren 2 archivos (frontal y trasera)
-        // De lo contrario, se requiere 1 archivo
         e.preventDefault();
-        if (formData.documentoTipo === '') {
-            alert('Por favor, selecciona el tipo de documento y súbelo.');
-            return;
-        }
+        if (isIndependent) {
+            if (formData.documentoTipo === '') {
+                alert('Por favor, selecciona el tipo de documento y súbelo.');
+                return;
+            }
 
-        if ((formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') &&
-            (!formData.documentoFrontal || !formData.documentoTrasera)) {
-            alert('Por favor, sube la imagen frontal y la trasera de la cédula.');
-            return;
-        }
+            if ((formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') &&
+                (!formData.documentoFrontal || !formData.documentoTrasera)) {
+                alert('Por favor, sube la imagen frontal y la trasera de la cédula.');
+                return;
+            }
 
-        if ((formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'RUT') &&
-            !formData.documentoUnico) {
-            alert('Por favor, sube el documento requerido.');
-            return;
-        }
+            if ((formData.documentoTipo === 'Pasaporte') && !formData.documentoUnico) {
+                alert('Por favor, sube el Pasaporte.');
+                return;
+            }
 
-        if (!formData.fotoPersonal) {
-            alert('Por favor, sube la imagen personal.');
-            return;
+            if (!formData.fotoPersonal) {
+                alert('Por favor, sube la imagen personal.');
+                return;
+            }
+        } else {
+            // Para empresa
+            if (formData.nit.trim() === '') {
+                alert('Por favor, ingresa el NIT.');
+                return;
+            }
+            if (formData.documentoTipo !== 'RUT' || !formData.documentoUnico) {
+                alert('Por favor, selecciona y sube el RUT.');
+                return;
+            }
         }
 
         e.target.submit();
@@ -286,8 +266,8 @@ const Contact = () => {
                                         <option value="">Selecciona el género</option>
                                         <option value="masculino">Masculino</option>
                                         <option value="femenino">Femenino</option>
-                                        <option value="femenino">Prefiero no decirlo</option>
-                                        <option value="femenino">Otro</option>
+                                        <option value="prefiero_no_decirlo">Prefiero no decirlo</option>
+                                        <option value="otro">Otro</option>
                                     </select>
                                     <input name="cedula" className="p-4 bg-white border rounded-lg" type="text" placeholder="Cédula" value={formData.cedula} onChange={handleInputChange} required />
                                 </>
@@ -361,7 +341,7 @@ const Contact = () => {
 
                             {/* 'Agregar Otros' Categoría */}
                             <div
-                                className={`flex flex-col justify-center items-center p-4 rounded-lg cursor-pointer h-40 bg-gray-200`}
+                                className="flex flex-col justify-center items-center p-4 rounded-lg cursor-pointer h-40 bg-gray-200"
                                 onClick={() => setModalCustomCategory(true)}
                             >
                                 <FontAwesomeIcon icon={faPlus} className="text-4xl mb-2" />
@@ -381,16 +361,27 @@ const Contact = () => {
 
                         {/* Subida de Documento */}
                         <div className="mb-6">
-                            <label
-                                className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
-                                onClick={() => setModalDocument(true)}
-                            >
-                                Adjuntar Documento de Identidad
-                                <i className="fas fa-paperclip ml-2"></i>
-                            </label>
+                            {isIndependent ? (
+                                <label
+                                    className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
+                                    onClick={() => setModalDocument(true)}
+                                >
+                                    Adjuntar documento de identidad
+                                    <i className="fas fa-paperclip ml-2"></i>
+                                </label>
+                            ) : (
+                                <label
+                                    className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
+                                    onClick={() => {setModalDocument(true)}}
+                                >
+                                    Adjuntar RUT
+                                    <i className="fas fa-paperclip ml-2"></i>
+                                </label>
+                            )}
+                            
                             {/* Mostrar archivos subidos dependiendo del tipo de documento */}
                             <div className="mt-4">
-                                {formData.documentoTipo && (formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') && (
+                                {formData.documentoTipo && isIndependent && (formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') && (
                                     <div className="flex flex-col space-y-2">
                                         <div className="flex items-center">
                                             <input
@@ -398,7 +389,6 @@ const Contact = () => {
                                                 name="documentoFrontal"
                                                 ref={fileInputRefFront}
                                                 onChange={(e) => handleFileChange(e, 'front')}
-                                                style={{ display: 'none' }}
                                                 accept="application/pdf,image/*"
                                             />
                                             {formData.documentoFrontal && (
@@ -414,7 +404,7 @@ const Contact = () => {
                                                     </button>
                                                 </>
                                             )}
-                                            {!formData.documentoFrontal && <p className="text-gray-500">Frontal no seleccionado</p>}
+                                            {!formData.documentoFrontal && <p className="text-gray-500 ml-2">Frontal no seleccionado</p>}
                                         </div>
                                         <div className="flex items-center">
                                             <input
@@ -422,7 +412,6 @@ const Contact = () => {
                                                 name="documentoTrasera"
                                                 ref={fileInputRefBack}
                                                 onChange={(e) => handleFileChange(e, 'back')}
-                                                style={{ display: 'none' }}
                                                 accept="application/pdf,image/*"
                                             />
                                             {formData.documentoTrasera && (
@@ -438,18 +427,17 @@ const Contact = () => {
                                                     </button>
                                                 </>
                                             )}
-                                            {!formData.documentoTrasera && <p className="text-gray-500">Trasera no seleccionada</p>}
+                                            {!formData.documentoTrasera && <p className="text-gray-500 ml-2">Trasera no seleccionada</p>}
                                         </div>
                                     </div>
                                 )}
-                                {formData.documentoTipo && (formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'RUT') && (
+                                {formData.documentoTipo && ((isIndependent && formData.documentoTipo === 'Pasaporte') || (!isIndependent && formData.documentoTipo === 'RUT')) && (
                                     <div className="flex items-center mt-2">
                                         <input
                                             type="file"
                                             name="documentoUnico"
                                             ref={fileInputRefSingle}
                                             onChange={(e) => handleFileChange(e, 'single')}
-                                            style={{ display: 'none' }}
                                             accept="application/pdf,image/*"
                                         />
                                         {formData.documentoUnico && (
@@ -465,48 +453,86 @@ const Contact = () => {
                                                 </button>
                                             </>
                                         )}
-                                        {!formData.documentoUnico && <p className="text-gray-500">Ningún archivo seleccionado</p>}
+                                        {!formData.documentoUnico && <p className="text-gray-500 ml-2">Ningún archivo seleccionado</p>}
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Nuevo botón para subir imagen personal */}
-                        <div className="mb-6">
-                            <label
-                                className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
-                                onClick={() => fileInputRefPersonal.current && fileInputRefPersonal.current.click()}
-                            >
-                                Adjuntar Imagen Personal
-                                <i className="fas fa-paperclip ml-2"></i>
-                            </label>
-                            <div className="flex items-center ml-4 mt-2">
-                                <input
-                                    type="file"
-                                    name="fotoPersonal"
-                                    ref={fileInputRefPersonal}
-                                    onChange={handlePersonalImageChange}
-                                    style={{ display: 'none' }}
-                                    accept="application/pdf,image/*"
-                                />
-                                {formData.fotoPersonal && (
-                                    <>
-                                        <i className="fas fa-paperclip text-blue-900 mr-2"></i>
-                                        <p className="text-gray-700 mr-4">{formData.fotoPersonal.name}</p>
-                                        <button
-                                            type="button"
-                                            className="text-red-500 hover:text-red-700"
-                                            onClick={removePersonalImage}
-                                        >
-                                            ✕
-                                        </button>
-                                    </>
-                                )}
-                                {!formData.fotoPersonal && <p className="text-gray-500">Ningún archivo seleccionado</p>}
+                        {/* Adjuntar Imagen Personal solo para Independientes */}
+                        {isIndependent && (
+                            <div className="mb-6">
+                                <label
+                                    className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
+                                    onClick={() => fileInputRefPersonal.current && fileInputRefPersonal.current.click()}
+                                >
+                                    Adjuntar Imagen Personal
+                                    <i className="fas fa-paperclip ml-2"></i>
+                                </label>
+                                <div className="flex items-center ml-4 mt-2">
+                                    <input
+                                        type="file"
+                                        name="fotoPersonal"
+                                        ref={fileInputRefPersonal}
+                                        onChange={(e) => handleFileChange(e, 'personal')}
+                                        style={{ display: 'none' }}
+                                        accept="application/pdf,image/*"
+                                    />
+                                    {formData.fotoPersonal && (
+                                        <>
+                                            <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                            <p className="text-gray-700 mr-4">{formData.fotoPersonal.name}</p>
+                                            <button
+                                                type="button"
+                                                className="text-red-500 hover:text-red-700"
+                                                onClick={() => removeFile('personal')}
+                                            >
+                                                ✕
+                                            </button>
+                                        </>
+                                    )}
+                                    {!formData.fotoPersonal && <p className="text-gray-500">Ningún archivo seleccionado</p>}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Botón de Envío */}
+                        {/* Adjuntar Certificado de Experticia solo para Independientes (OPCIONAL) */}
+                        {isIndependent && (
+                            <div className="mb-6">
+                                <label
+                                    className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
+                                    onClick={() => fileInputRefCertificado.current && fileInputRefCertificado.current.click()}
+                                >
+                                    Adjuntar Certificado de experticia (Opcional)
+                                    <i className="fas fa-paperclip ml-2"></i>
+                                </label>
+                                <div className="flex items-center ml-4 mt-2">
+                                    <input
+                                        type="file"
+                                        name="certificadoExperticia"
+                                        ref={fileInputRefCertificado}
+                                        onChange={(e) => handleFileChange(e, 'certificado')}
+                                        style={{ display: 'none' }}
+                                        accept="application/pdf,image/*"
+                                    />
+                                    {formData.certificadoExperticia && (
+                                        <>
+                                            <i className="fas fa-paperclip text-blue-900 mr-2"></i>
+                                            <p className="text-gray-700 mr-4">{formData.certificadoExperticia.name}</p>
+                                            <button
+                                                type="button"
+                                                className="text-red-500 hover:text-red-700"
+                                                onClick={() => removeFile('certificado')}
+                                            >
+                                                ✕
+                                            </button>
+                                        </>
+                                    )}
+                                    {!formData.certificadoExperticia && <p className="text-gray-500">Ningún archivo seleccionado</p>}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Botón de Envío */}
                         <div className="flex flex-col items-center mt-10">
                             <button type="submit" className="bg-blue-900 text-white px-8 py-3 rounded-lg text-lg font-bold hover:bg-blue-800">
@@ -517,7 +543,6 @@ const Contact = () => {
                             </p>
                         </div>
                         
-    
                     </form>
                 </div>
             </div>
@@ -558,7 +583,7 @@ const Contact = () => {
                 <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
                     <div className="bg-white p-6 rounded-lg">
                         <h2 className="text-xl font-bold mb-4">
-                            Selecciona el tipo de documento {isIndependent ? 'personal' : 'para empresa'}
+                            {isIndependent ? 'Selecciona el tipo de documento personal' : 'Selecciona el documento para la empresa'}
                         </h2>
                         <div className="flex flex-col space-y-4">
                             {isIndependent ? (

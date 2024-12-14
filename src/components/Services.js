@@ -94,7 +94,7 @@ const Services = () => {
                             <h3 className="text-3xl text-blue-900 font-bold">Nosotros <span className='font-black'>Conectamos</span></h3>
                             <div>
                                 <p className='my-3 text-xl text-gray-600 font-semibold'>
-                                    Trabajamos para unir hogares con profesionales altamente capacitados, asegurando calidad en cada servicio que realizamos.
+                                    Trabajamos para unir hogares con profesionales altamente capacitados.
                                 </p>
                             </div>
                         </div>
@@ -105,7 +105,7 @@ const Services = () => {
                             <h3 className="text-3xl text-blue-900 font-bold">Nosotros <span className='font-black'>Facilitamos</span></h3>
                             <div>
                                 <p className='my-3 text-xl text-gray-600 font-semibold'>
-                                    Facilitamos el acceso a servicios del hogar, brindando tranquilidad y soluciones rápidas a cada necesidad.
+                                    Facilitamos el acceso a servicios del hogar.
                                 </p>
                             </div>
                         </div>
