@@ -286,6 +286,8 @@ const Contact = () => {
                                         <option value="">Selecciona el género</option>
                                         <option value="masculino">Masculino</option>
                                         <option value="femenino">Femenino</option>
+                                        <option value="femenino">Prefiero no decirlo</option>
+                                        <option value="femenino">Otro</option>
                                     </select>
                                     <input name="cedula" className="p-4 bg-white border rounded-lg" type="text" placeholder="Cédula" value={formData.cedula} onChange={handleInputChange} required />
                                 </>
