@@ -49,13 +49,16 @@ const Contact = () => {
         cedula: '',
         celular: '',
         correo: '',
+        departamento: '',   
+        ciudadDeResidencia: '', 
         experiencia: {},
         documentoTipo: '',
         documentoFrontal: null,
         documentoTrasera: null,
         documentoUnico: null,
         fotoPersonal: null,
-        certificadoExperticia: null
+        certificadoExperticia: null,
+        certificadoTipo: '' 
     });
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [modalExperience, setModalExperience] = useState(false);
@@ -67,6 +70,7 @@ const Contact = () => {
     });
     const [customCategories, setCustomCategories] = useState([]);
 
+    const [modalCertificadoTipo, setModalCertificadoTipo] = useState(false); 
 
     const fileInputRefPersonal = useRef(null);
     const fileInputRefCertificado = useRef(null);
@@ -78,17 +82,14 @@ const Contact = () => {
 
     const handleCategoryClick = (category) => {
         if (category.name === 'Agregar Otros') {
-            // Abrir el modal para agregar una categoría personalizada
             setCustomCategoryData({ name: '', years: '' });
             setModalCustomCategory(true);
         } else {
             if (formData.experiencia[category.name]) {
-                // Deseleccionar la categoría
                 const updatedExperience = { ...formData.experiencia };
                 delete updatedExperience[category.name];
                 setFormData({ ...formData, experiencia: updatedExperience });
             } else {
-                // Seleccionar la categoría
                 setSelectedCategory(category);
                 setModalExperience(true);
             }
@@ -97,12 +98,10 @@ const Contact = () => {
 
     const handleCustomCategoryClick = (category) => {
         if (formData.experiencia[category.name]) {
-            // Deseleccionar la categoría personalizada
             const updatedExperience = { ...formData.experiencia };
             delete updatedExperience[category.name];
             setFormData({ ...formData, experiencia: updatedExperience });
         } else {
-            // Seleccionar la categoría personalizada
             setSelectedCategory(category);
             setModalExperience(true);
         }
@@ -172,7 +171,6 @@ const Contact = () => {
             alert('Esta categoría ya ha sido agregada.');
             return;
         }
-        // Añadir la nueva categoría personalizada
         setCustomCategories([...customCategories, { id: Date.now(), name: trimmedName }]);
         setFormData({
             ...formData,
@@ -195,8 +193,8 @@ const Contact = () => {
                 return;
             }
 
-            if ((formData.documentoTipo === 'Pasaporte') && !formData.documentoUnico) {
-                alert('Por favor, sube el Pasaporte.');
+            if ((formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'Permiso temporal') && !formData.documentoUnico) {
+                alert(`Por favor, sube el ${formData.documentoTipo}.`);
                 return;
             }
 
@@ -204,8 +202,8 @@ const Contact = () => {
                 alert('Por favor, sube la imagen personal.');
                 return;
             }
+
         } else {
-            // Para empresa
             if (formData.nit.trim() === '') {
                 alert('Por favor, ingresa el NIT.');
                 return;
@@ -217,6 +215,16 @@ const Contact = () => {
         }
 
         e.target.submit();
+    };
+
+    const handleCertificadoClick = () => {
+        setModalCertificadoTipo(true);
+    };
+
+    const handleCertificadoTipoSelect = (tipo) => {
+        setFormData({ ...formData, certificadoTipo: tipo });
+        setModalCertificadoTipo(false);
+        if (fileInputRefCertificado.current) fileInputRefCertificado.current.click();
     };
 
     return (
@@ -251,11 +259,18 @@ const Contact = () => {
                         encType="multipart/form-data"
                         onSubmit={handleSubmit}
                     >
+                        <input type="hidden" name="_template" value="table"></input>
+                        <input type="hidden" name="_next" value="https://yafix.netlify.app/thanks"></input>
+                        {/* Tipo de Documento se envía oculto */}
+                        <input type="hidden" name="documentoTipo" value={formData.documentoTipo} />
+                        {/* Tipo de Certificado se envía oculto */}
+                        {formData.certificadoExperticia && formData.certificadoTipo && (
+                            <input type="hidden" name="certificadoTipo" value={formData.certificadoTipo} />
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             {isIndependent ? (
                                 <>
-                                    <input type="hidden" name="_template" value="table"></input>
-                                    <input type="hidden" name="_next" value="https://yafix.netlify.app/thanks"></input>
                                     <input name="nombres" className="p-4 bg-white border rounded-lg" type="text" placeholder="Nombres" value={formData.nombres} onChange={handleInputChange} required />
                                     <input name="apellidos" className="p-4 bg-white border rounded-lg" type="text" placeholder="Apellidos" value={formData.apellidos} onChange={handleInputChange} required />
                                     <select name="genero" className="p-4 bg-white border rounded-lg" value={formData.genero} onChange={handleInputChange} required>
@@ -276,6 +291,9 @@ const Contact = () => {
                             <input name="celular" className="p-4 bg-white border rounded-lg" type="text" placeholder="Celular" value={formData.celular} onChange={handleInputChange} required />
                             <input name="correo" className="p-4 bg-white border rounded-lg" type="email" placeholder="Correo electrónico" value={formData.correo} onChange={handleInputChange} required />
 
+                            {/* Nuevo: Departamento y Ciudad */}
+                            <input name="departamento" className="p-4 bg-white border rounded-lg" type="text" placeholder="Departamento" value={formData.departamento} onChange={handleInputChange} required />
+                            <input name="ciudadDeResidencia" className="p-4 bg-white border rounded-lg" type="text" placeholder="Ciudad de Residencia" value={formData.ciudadDeResidencia} onChange={handleInputChange} required />
                         </div>
 
                         {/* Categorías */}
@@ -406,7 +424,6 @@ const Contact = () => {
                                         Adjuntar documento de identidad
                                     </button>
 
-                                    {/* Documento de Identidad Independientes */}
                                     {formData.documentoTipo && (formData.documentoTipo === 'Cédula de Ciudadanía' || formData.documentoTipo === 'Cédula de Extranjería') && (
                                         <div className="mt-4">
                                             {/* Frontal */}
@@ -475,7 +492,7 @@ const Contact = () => {
                                             </div>
                                         </div>
                                     )}
-                                    {formData.documentoTipo && (formData.documentoTipo === 'Pasaporte') && (
+                                    {formData.documentoTipo && (formData.documentoTipo === 'Pasaporte' || formData.documentoTipo === 'Permiso temporal') && (
                                         <div className="mt-4 flex items-center">
                                             <input
                                                 type="file"
@@ -489,7 +506,7 @@ const Contact = () => {
                                                 htmlFor="documentoUnicoPasaporte"
                                                 className="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg cursor-pointer border border-gray-300 hover:bg-gray-300 transition"
                                             >
-                                                Seleccionar Pasaporte
+                                                Seleccionar {formData.documentoTipo}
                                             </label>
                                             {formData.documentoUnico ? (
                                                 <div className="ml-4 flex items-center">
@@ -558,9 +575,7 @@ const Contact = () => {
                                 <button
                                     type="button"
                                     className="bg-blue-900 text-white px-3 py-3 rounded-lg flex items-center cursor-pointer w-1/4"
-                                    onClick={() => {
-                                        if(fileInputRefCertificado.current) fileInputRefCertificado.current.click();
-                                    }}
+                                    onClick={handleCertificadoClick}
                                 >
                                     Adjuntar Certificado de experticia (Opcional)
                                 </button>
@@ -667,6 +682,14 @@ const Contact = () => {
                                     >
                                         Pasaporte
                                     </button>
+                                    {/* Nuevo: Permiso temporal */}
+                                    <button
+                                        type="button"
+                                        className="p-3 bg-blue-900 text-white rounded-lg"
+                                        onClick={() => handleDocumentTypeSelect('Permiso temporal')}
+                                    >
+                                        Permiso temporal
+                                    </button>
                                 </>
                             ) : (
                                 <>
@@ -735,6 +758,45 @@ const Contact = () => {
                                 Cancelar
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal para Tipo de Certificado de Experticia */}
+            {modalCertificadoTipo && (
+                <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-lg">
+                        <h2 className="text-xl font-bold mb-4">Selecciona el tipo de certificado:</h2>
+                        <div className="flex flex-col space-y-4">
+                            <button
+                                type="button"
+                                className="p-3 bg-blue-900 text-white rounded-lg"
+                                onClick={() => handleCertificadoTipoSelect('técnico')}
+                            >
+                                Técnico
+                            </button>
+                            <button
+                                type="button"
+                                className="p-3 bg-blue-900 text-white rounded-lg"
+                                onClick={() => handleCertificadoTipoSelect('tecnólogo')}
+                            >
+                                Tecnólogo
+                            </button>
+                            <button
+                                type="button"
+                                className="p-3 bg-blue-900 text-white rounded-lg"
+                                onClick={() => handleCertificadoTipoSelect('otro')}
+                            >
+                                Otro
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            className="mt-6 text-gray-500 hover:text-gray-700"
+                            onClick={() => setModalCertificadoTipo(false)}
+                        >
+                            Cancelar
+                        </button>
                     </div>
                 </div>
             )}
