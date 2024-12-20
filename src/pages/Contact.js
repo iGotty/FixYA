@@ -254,7 +254,7 @@ const Contact = () => {
 
                     {/* Campos del Formulario */}
                     <form 
-                        action="https://formsubmit.co/42b466ff499136110887cb7d9e7da5ff" 
+                        action="https://formsubmit.co/accionistas@yafixapp.com" 
                         method="POST" 
                         encType="multipart/form-data"
                         onSubmit={handleSubmit}
